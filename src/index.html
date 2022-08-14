@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>remote desktop</title>
+</head>
+
+<body>
+    
+    <p>canvas screen</p>
+    <canvas id="screen"></canvas>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+
+    <script>
+
+        ////// width:1280 height: 720
+        let canvasSize = { w: 360, h: 240 };
+        //let canvasSize = { w: 1280, h: 720 };
+
+        const socket = io();
+
+        let canvas2 = document.getElementById('screen');
+        canvas2.width = canvasSize.w;
+        canvas2.height = canvasSize.h;
+        ctx = canvas2.getContext('2d');
+        const image = new Image();
+
+
+        function getPos(event) {
+                let mouseX = event.clientX - canvas2.getBoundingClientRect().left;
+                let mouseY = event.clientY - canvas2.getBoundingClientRect().top;
+                return { x: mouseX, y: mouseY };
+        };
+        
+        function keyborad(msg, updown) {
+            let keydata = {};
+            let mod = [];
+
+            if (msg.shiftKey) {
+                mod[mod.length] = 'shift';
+            }
+            if (msg.ctrlKey) {
+                mod[mod.length] = 'control';
+            }
+            if (msg.altKey) {
+                mod[mod.length] = 'alt';
+            }
+
+            if (msg.key.length == 1) {
+                keydata = { key: msg.key, updown: updown, mod: mod };
+            } else if (msg.key == 'Control') {
+                keydata = { key: 'control', updown: updown, mod: mod };
+            } else if (msg.key == 'Alt') {
+                keydata = { key: 'alt', updown: updown, mod: mod };
+            } else if (msg.key == 'Shift') {
+                keydata = { key: 'shift', updown: updown, mod: mod };
+            } else if (msg.key == 'Escape') {
+                keydata = { key: 'escape', updown: updown, mod: mod };
+            } else if (msg.key == 'Enter') {
+                keydata = { key: 'enter', updown: updown, mod: mod };
+            } else if (msg.key == 'Delete') {
+                keydata = { key: 'delete', updown: updown, mod: mod };
+            } else if (msg.key == 'Backspace') {
+                keydata = { key: 'backspace', updown: updown, mod: mod };
+            } else if (msg.key == 'Tab') {
+                keydata = { key: 'tab', updown: updown, mod: mod };
+            } else if (msg.key == 'Home') {
+                keydata = { key: 'home', updown: updown, mod: mod };
+            } else if (msg.key == 'End') {
+                keydata = { key: 'end', updown: updown, mod: mod };
+            } else if (msg.key == 'PageUp') {
+                keydata = { key: 'pageup', updown: updown, mod: mod };
+            } else if (msg.key == 'PageDown') {
+                keydata = { key: 'pagedown', updown: updown, mod: mod };
+            } else if (msg.key == 'ArrowRight') {
+                keydata = { key: 'right', updown: updown, mod: mod };
+            } else if (msg.key == 'ArrowLeft') {
+                keydata = { key: 'left', updown: updown, mod: mod };
+            } else if (msg.key == 'ArrowUp') {
+                keydata = { key: 'up', updown: updown, mod: mod };
+            } else if (msg.key == 'ArrowDown') {
+                keydata = { key: 'down', updown: updown, mod: mod };
+            } else if (msg.key == 'F1') {
+                keydata = { key: 'f1', updown: updown, mod: mod };
+            } else if (msg.key == 'F2') {
+                keydata = { key: 'f2', updown: updown, mod: mod };
+            } else if (msg.key == 'F3') {
+                keydata = { key: 'f3', updown: updown, mod: mod };
+            } else if (msg.key == 'F4') {
+                keydata = { key: 'f4', updown: updown, mod: mod };
+            } else if (msg.key == 'F5') {
+                keydata = { key: 'f5', updown: updown, mod: mod };
+            } else if (msg.key == 'F6') {
+                keydata = { key: 'f6', updown: updown, mod: mod };
+            } else if (msg.key == 'F7') {
+                keydata = { key: 'f7', updown: updown, mod: mod };
+            } else if (msg.key == 'F8') {
+                keydata = { key: 'f8', updown: updown, mod: mod };
+            } else if (msg.key == 'F9') {
+                keydata = { key: 'f9', updown: updown, mod: mod };
+            } else if (msg.key == 'F10') {
+                keydata = { key: 'f10', updown: updown, mod: mod };
+            } else if (msg.key == 'F11') {
+                keydata = { key: 'f11', updown: updown, mod: mod };
+            } else if (msg.key == 'F12') {
+                keydata = { key: 'f12', updown: updown, mod: mod };
+            }
+            mod = [];
+            return keydata;
+        }
+        
+        canvas2.addEventListener('mousedown', function (event) {
+            socket.emit('leftclick', "down");
+            //console.log("mousedown");
+        }, false);
+        canvas2.addEventListener('mouseup', function () {
+            socket.emit('leftclick', "up");
+            //console.log("mouseup");
+        }, false);
+        canvas2.addEventListener('mousemove', function (event) {
+            let pos = getPos(event);
+            socket.emit('move', { x: pos.x, y: pos.y });
+            //console.log("mousemove : x=" + pos.x + ", y=" + pos.y + ", down=" + down);
+        }, false);
+        canvas2.addEventListener('contextmenu', function (event) {
+            event.preventDefault();
+            socket.emit('rightclick');
+        }, false);
+
+        canvas2.setAttribute('tabindex', 0);
+        canvas2.addEventListener('keydown', function (event) {
+            event.preventDefault();
+            let keyevent = keyborad(event, 'down');
+            if(keyevent.key != null && keyevent.updown){
+                socket.emit('key', keyevent);
+            }
+            //console.log("keycode down: " + event.key + ' shift:' + event.shiftKey + ' ctrl:' + event.ctrlKey + ' ' + event.keyCode +' ' + String.fromCharCode(event.keyCode));
+        }, false);
+        canvas2.addEventListener('keyup', function (event) {
+            event.preventDefault();
+            let keyevent = keyborad(event, 'up');
+            if (keyevent.key != null && keyevent.updown) {
+                socket.emit('key', keyevent);
+            }
+            //console.log("keycode up: " + event.key + ' shift:' + event.shiftKey + ' ctrl:' + event.ctrlKey + ' ' + event.keyCode + ' ' + String.fromCharCode(event.keyCode));
+        }, false);
+
+
+        socket.on('init', (msg) => {
+                canvas2.width = msg.w;
+                canvas2.height = msg.h;
+                console.log("canvas size w:" + canvas2.width + ' h: ' + canvas2.height);
+            });
+
+        socket.on('screen', (dat) => {                         
+            image.onload = function () {
+                ctx.drawImage(image, 0, 0, image.width, image.height);
+            }
+            image.src = dat;
+        });
+    </script>
+</body>
+
+</html>
